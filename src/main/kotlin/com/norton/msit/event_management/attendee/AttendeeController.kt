@@ -15,20 +15,20 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
-@RequestMapping("/api/v1/agenda")
-class AgendaController {
+@RequestMapping("/api/v1/attendee")
+class AttendeeController {
 
-    val logger: Logger = LoggerFactory.getLogger(AgendaController::class.java)
+    val logger: Logger = LoggerFactory.getLogger(AttendeeController::class.java)
 
     @Autowired
-    private lateinit var repository: AgendaRepository
+    private lateinit var repository: AttendeeRepository
 
-    @GetMapping("/event_id/{eventId}")
-    fun listEvent(@PathVariable eventId:Long) : ResponseEntity<List<Attendee>> {
-        val agendas = repository.findAll(Sort.by(Sort.Direction.DESC, "id"))
+    @GetMapping("/list-by-event_id/{eventId}")
+    fun listByEvent(@PathVariable eventId:Long) : ResponseEntity<List<Attendee>> {
+        val agendas = repository.findAll(Sort.by(Sort.Direction.DESC, "eventId"))
             .filter { it.eventId == eventId }
 
-        logger.info("${agendas.size} agendas found")
+        logger.info("${agendas.size} attendee found")
         return ResponseEntity.ok().body(agendas)
     }
 

@@ -4,7 +4,7 @@ import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.stereotype.Repository
 
 @Repository
-interface AgendaRepository : JpaRepository<Attendee, Long> {
+interface AttendeeRepository : JpaRepository<Attendee, Long> {
 
     override fun findAll() : MutableList<Attendee>
 }
