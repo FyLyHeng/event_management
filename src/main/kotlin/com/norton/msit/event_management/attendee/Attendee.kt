@@ -23,10 +23,6 @@ data class Attendee (
 
     var description: String? = null,
 
-    val agendaDate: LocalDate ? = LocalDate.now(),
-    val agendaDuration : String?="0 min",
-
-
     @JsonIgnore
     var createdBy: Long? = null,
     @JsonIgnore
