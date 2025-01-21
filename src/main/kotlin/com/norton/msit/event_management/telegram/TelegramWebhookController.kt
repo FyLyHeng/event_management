@@ -1,12 +1,21 @@
 package com.norton.msit.event_management.telegram
 
+import com.norton.msit.event_management.auth.UserRepository
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
+import org.telegram.telegrambots.meta.api.methods.ParseMode
+import org.telegram.telegrambots.meta.api.methods.send.SendMessage
+import org.telegram.telegrambots.meta.api.objects.Message
+import org.telegram.telegrambots.meta.api.objects.Update
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton
+import org.telegram.telegrambots.meta.exceptions.TelegramApiException
 
 
 @RestController
@@ -15,29 +24,93 @@ class TelegramWebhookController {
 
     val logger = LoggerFactory.getLogger(TelegramWebhookController::class.java)
 
-
     @Autowired
-    private lateinit var notificationService : NotificationService
+    private lateinit var myTelegramBot: MyTelegramBot
+    @Autowired
+    private lateinit var userRepository: UserRepository
+
+    @Value("\${public.url}")
+    private lateinit var publicUrl: String
 
 
     @PostMapping("/webhook")
-    fun handleTelegramWebhook(@RequestBody update: String): ResponseEntity<String> {
+    fun handleUpdate(@RequestBody update: Update) {
 
-        //val data = gson.fromJson(update, Map::class.java)
+        logger.info("telegram received : $update")
 
-        logger.info("Webhook received: $update")
+        if (update.hasMessage() && update.message.text == "/start") {
+
+            val registerUrl = "$publicUrl/api/v1/auth/register"
+
+            val chatId = update.message.chatId.toString()
+/*            val message = SendMessage(chatId,
+                """
+        👋 Welcome to Event Management System Bot!
+        
+        Here's what I can do for you:
+        ✅ sign up by web [event.mgt.singup.com](${registerUrl})
+        ✅ Use Your ID : $chatId for fill in Sign-Up form.
+        
+        ✅ sign up quickly by clicking the button below.
+            """.trimIndent()
+            )
+
+            val button = InlineKeyboardButton()
+            button.text = "Click here to sign up"
+            button.url = registerUrl
+
+            val keyboard = InlineKeyboardMarkup()
+            keyboard.keyboard = listOf(listOf(button))
+            message.replyMarkup = keyboard
+
+            message.parseMode = ParseMode.MARKDOWN*/
+
+            val message = "👋 Welcome to Event Management System Bot!\n\n" +
+                    "Here's what I can do for you:\n" +
+                    "✅ sign up by web [event.mgt.singup.com]($registerUrl)\n" +
+                    "✅ Use Your ID : $chatId for fill in Sign-Up form.\n" +
+                    "\n" +
+                    "✅ sign up quickly by clicking the button below.\n" +
+                    "\n" +
+                    "👉 Click here to sign up"
+
+            val msg = SendMessage(chatId, message)
+            msg.parseMode = ParseMode.MARKDOWN
+            myTelegramBot.execute(msg)
+        }
+
+        if (update.hasMessage() && update.message.text == "/id") {
+            val chatId = update.message.chatId.toString()
+            val message = SendMessage(chatId, "Your ID is : $chatId")
+            myTelegramBot.execute(message)
+        }
 
 
-        // Process the incoming Telegram update
-//        val message = update["message"] as Map<String, *>?
-//        if (message != null) {
-//
-//            val chatId: String = message["chat"].get("id").toString()
-//            val userMessage = message["text"].toString()
-//
-//            notificationService.sendOrderNotification(chatId, "Thanks for your message: $userMessage")
-//        }
-        return ResponseEntity.ok("Webhook received")
+        if (update.hasCallbackQuery()) {
+            val callbackData = update.callbackQuery.data
+            val chatId = update.callbackQuery.message.chatId.toString()
+
+            try {
+
+                if (callbackData.startsWith("confirm_signup")) {
+
+                    val user = userRepository.findFirstByTelegramId(chatId)
+                    if (user.isPresent)
+                    {
+                        user.get().status = true
+                        userRepository.save(user.get())
+                        myTelegramBot.execute(SendMessage(chatId, "Your sign-up is confirmed. Welcome!"))
+                    }
+
+                    else {
+                        myTelegramBot.execute(SendMessage(chatId, "The User ID Not Match. Please Try Again."))
+                    }
+                }
+
+            } catch (e: TelegramApiException) {
+                e.printStackTrace()
+            }
+        }
     }
 
 }

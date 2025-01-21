@@ -1,5 +1,6 @@
 package com.norton.msit.event_management.auth
 
+import com.norton.msit.event_management.telegram.NotificationService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.PostMapping
@@ -13,6 +14,8 @@ class AuthController {
 
     @Autowired
     private lateinit var repository: UserRepository
+    @Autowired
+    private lateinit var notificationService: NotificationService
 
 
     @PostMapping("/login")
@@ -33,11 +36,24 @@ class AuthController {
     @PostMapping("/register")
     fun singUp(@RequestBody user: User): ResponseEntity<User> {
 
+        if (user.telegramId == null){
+            throw BadRequestException("Telegram ID require")
+        }
+
+        var exist = repository.findFirstByTelegramId(user.telegramId)
+
+        if (exist.isPresent){
+
+        }
+
         repository.findFirstByUsername(user.username).ifPresent {
             throw BadRequestException("Username already exists")
         }
 
+        user.status = false
         repository.save(user)
+        notificationService.sendSignupConfirmation(user.telegramId!!)
+
         return ResponseEntity.ok().body(user)
     }
 }

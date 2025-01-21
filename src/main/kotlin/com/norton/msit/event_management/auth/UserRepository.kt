@@ -9,5 +9,7 @@ interface UserRepository : JpaRepository<User, Long> {
 
     override fun findAll() : MutableList<User>
 
+    fun findFirstByTelegramId(terminalId: String?) : Optional<User>
+
     fun findFirstByUsername(username: String?) : Optional<User>
 }

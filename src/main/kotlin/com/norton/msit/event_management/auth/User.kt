@@ -16,10 +16,13 @@ data class User (
     var lastName: String? = null,
     var email: String? = null,
     var phone: String? = null,
+    var telegramId: String? = null,
 
     var roles: String? = RoleName.Guest.name,
 
     var imageUrl: String? = null,
+
+    var status : Boolean? = false
 
     )
 
