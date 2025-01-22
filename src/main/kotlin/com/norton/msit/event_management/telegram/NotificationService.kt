@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import org.springframework.web.client.RestTemplate
+import org.telegram.telegrambots.meta.api.methods.ParseMode
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton
@@ -53,6 +54,42 @@ class NotificationService {
         try {
             myTelegramBot.execute(message)
         } catch (e: TelegramApiException) {
+            e.printStackTrace()
+        }
+    }
+
+    fun setRegisterConfirmation(chatId: String,eventId: Long, eventName: String, eventDate: String, eventLocation: String) {
+
+        val message = SendMessage()
+        message.chatId = chatId
+        message.text = """
+        🎉 **Event Registration Confirmation** 🎉
+        
+        You're invited to join:
+        📅 **Event:** $eventName  
+        🗓️ **Date:** $eventDate  
+        📍 **Location:** $eventLocation
+        
+        Please confirm your registration by clicking the button below. We can't wait to see you there! 😊
+    """.trimIndent()
+        message.parseMode = ParseMode.MARKDOWN
+
+
+        // Create InlineKeyboardMarkup with a button
+        val confirmButton = InlineKeyboardButton()
+        confirmButton.text = "✅ Confirm Registration"
+        confirmButton.callbackData = "confirm_event_register:$eventId"
+
+        val keyboardMarkup = InlineKeyboardMarkup()
+        keyboardMarkup.keyboard = listOf(listOf(confirmButton))
+        message.replyMarkup = keyboardMarkup
+
+        try {
+
+            myTelegramBot.execute(message)
+
+        } catch (e: TelegramApiException) {
+
             e.printStackTrace()
         }
     }

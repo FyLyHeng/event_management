@@ -30,6 +30,7 @@ data class Event (
     var eventVenueName: String? = null,
     var eventVenueAddress: String? = null,
 
-    
+
+    var eventOwner: String? = null,
     var createdBy: Long? = null,
 )

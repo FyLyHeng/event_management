@@ -12,4 +12,6 @@ interface UserRepository : JpaRepository<User, Long> {
     fun findFirstByTelegramId(terminalId: String?) : Optional<User>
 
     fun findFirstByUsername(username: String?) : Optional<User>
+
+    fun findFirstById(id: Long?) : Optional<User>
 }

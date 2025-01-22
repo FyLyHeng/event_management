@@ -9,22 +9,36 @@ import java.time.LocalDate
 
 
 @Entity
-data class Attendee (
+data class Attendee(
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    var id: Long?=0,
-    var eventId: Long?=0,
+    var id: Long? = 0,
 
-    var firstname: String? = null,
-    var lastName: String? = null,
-    val email : String?=null,
-    val phone : String?=null,
+
+    var eventId: Long? = 0,
+    var userId: Long? = 0,
+
+    var eventName: String? = null,
+    var eventDate: LocalDate? = LocalDate.now(),
+
+    var userFullName: String? = null,
+    val userEmail: String? = null,
+    val userPhone: String? = null,
+    val userTelegramId: String? = null,
+
+    var attendanceStatus: String? = AttendanceStatus.Pending.name,
 
     var description: String? = null,
 
+    var userConfirmed : Boolean? = false,
+
+
     @JsonIgnore
-    var createdBy: Long? = null,
-    @JsonIgnore
-    var creationDate: LocalDate? = LocalDate.now(),
+    var registerDate: LocalDate? = LocalDate.now(),
 )
+
+enum class AttendanceStatus {
+    Pending,
+    Joined
+}

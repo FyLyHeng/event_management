@@ -1,5 +1,6 @@
 package com.norton.msit.event_management.telegram
 
+import com.norton.msit.event_management.attendee.AttendeeRepository
 import com.norton.msit.event_management.auth.UserRepository
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -28,6 +29,8 @@ class TelegramWebhookController {
     private lateinit var myTelegramBot: MyTelegramBot
     @Autowired
     private lateinit var userRepository: UserRepository
+    @Autowired
+    private lateinit var eventGuestRepository: AttendeeRepository
 
     @Value("\${public.url}")
     private lateinit var publicUrl: String
@@ -105,6 +108,24 @@ class TelegramWebhookController {
                     else {
                         myTelegramBot.execute(SendMessage(chatId, "The User ID Not Match. Please Try Again."))
                     }
+                }
+
+                if (callbackData.startsWith("confirm_event_register:")) {
+
+                    val eventId = callbackData.split(":")[1].toLong() ?: 0
+                    val user = userRepository.findFirstByTelegramId(chatId)
+                    if (user.isEmpty) {
+                        myTelegramBot.execute(SendMessage(chatId, "The User ID Not Match. Please Try Again."))
+                    }
+
+                    val eventGuest = eventGuestRepository.findFirstByEventIdAndUserTelegramId(eventId, chatId)
+                    if (eventGuest.isEmpty) {
+                        myTelegramBot.execute(SendMessage(chatId, "The Event Not Match. Please Try Again."))
+                    }
+
+                    val message = SendMessage(chatId, """🎉 **Event Registration Completed** 🎉""")
+                    message.parseMode = ParseMode.MARKDOWN
+                    myTelegramBot.execute(message)
                 }
 
             } catch (e: TelegramApiException) {
