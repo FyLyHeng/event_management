@@ -5,11 +5,13 @@ import jakarta.persistence.Entity
 import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
+import jakarta.persistence.Table
 import java.time.LocalDate
 
 
 @Entity
-data class Attendee(
+@Table(name = "Attendee")
+data class EventAttendee(
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -21,7 +23,9 @@ data class Attendee(
 
     var eventName: String? = null,
     var eventDate: LocalDate? = LocalDate.now(),
+    val eventVenueName: String? = null,
 
+    var ticketNumber: String? = null,
     var userFullName: String? = null,
     val userEmail: String? = null,
     val userPhone: String? = null,

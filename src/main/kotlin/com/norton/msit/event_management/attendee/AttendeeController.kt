@@ -24,7 +24,7 @@ class AttendeeController {
     private lateinit var repository: AttendeeRepository
 
     @GetMapping("/list-by-event_id/{eventId}")
-    fun listByEvent(@PathVariable eventId:Long) : ResponseEntity<List<Attendee>> {
+    fun listByEvent(@PathVariable eventId:Long) : ResponseEntity<List<EventAttendee>> {
         val agendas = repository.findAll(Sort.by(Sort.Direction.DESC, "eventId"))
             .filter { it.eventId == eventId }
 
@@ -33,19 +33,18 @@ class AttendeeController {
     }
 
     @GetMapping("{id}")
-    fun getById(@PathVariable id: Long): ResponseEntity<Attendee> {
+    fun getById(@PathVariable id: Long): ResponseEntity<EventAttendee> {
         return ResponseEntity.ok().body(repository.findById(id).orElseThrow())
     }
 
     @PutMapping("{id}")
-    fun update(@PathVariable id: Long, @RequestBody body: Attendee) : ResponseEntity<Map<String,String>> {
-
+    fun update(@PathVariable id: Long, @RequestBody body: EventAttendee) : ResponseEntity<Map<String,String>> {
         repository.save(body)
         return ResponseEntity.ok().body(mapOf("message" to "success"))
     }
 
     @PostMapping
-    fun save(@RequestBody body: Attendee) : ResponseEntity<Map<String,String>> {
+    fun save(@RequestBody body: EventAttendee) : ResponseEntity<Map<String,String>> {
         repository.save(body)
         return ResponseEntity.ok().body(mapOf("message" to "success"))
     }

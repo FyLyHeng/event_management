@@ -5,10 +5,11 @@ import org.springframework.stereotype.Repository
 import java.util.Optional
 
 @Repository
-interface AttendeeRepository : JpaRepository<Attendee, Long> {
+interface AttendeeRepository : JpaRepository<EventAttendee, Long> {
 
-    override fun findAll() : MutableList<Attendee>
+    override fun findAll() : MutableList<EventAttendee>
 
-    fun findFirstByEventIdAndUserTelegramId(eventId:Long?, chatId:String) : Optional<Attendee>
+    fun findAllByEventId(eventId:Long) : MutableList<EventAttendee>
+    fun findFirstByEventIdAndUserTelegramId(eventId:Long?, chatId:String) : Optional<EventAttendee>
 
 }

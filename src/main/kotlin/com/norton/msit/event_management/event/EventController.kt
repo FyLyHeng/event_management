@@ -1,6 +1,6 @@
 package com.norton.msit.event_management.event
 
-import com.norton.msit.event_management.attendee.Attendee
+import com.norton.msit.event_management.attendee.EventAttendee
 import com.norton.msit.event_management.attendee.AttendeeRepository
 import com.norton.msit.event_management.auth.UserRepository
 import com.norton.msit.event_management.telegram.NotificationService
@@ -57,10 +57,11 @@ class EventController {
         val event = repository.findFirstById(body["eventId"]!!.toLong()).orElseThrow()
         val guest = userRepository.findFirstById(body["guestId"]!!.toLong()).orElseThrow()
 
-        val eventAttendee = Attendee(
+        val eventAttendee = EventAttendee(
             eventId = event.id,
             eventName = event.title,
             eventDate = event.eventDate,
+            eventVenueName = event.eventVenueName,
             userId = guest.id,
             userFullName = guest.firstName + " " + guest.lastName,
             userPhone = guest.phone,
@@ -82,5 +83,26 @@ class EventController {
     }
 
 
+    @PostMapping("/reminder-all")
+    fun eventReminderAll(@RequestBody body: Map<String, String>) : ResponseEntity<Any> {
+
+        val event = attendeeRepository.findAllByEventId(body["eventId"]!!.toLong())
+
+        event.forEach {
+            notificationService.sendEventReminder(it.userTelegramId!!, it)
+        }
+
+        return ResponseEntity.ok().body(mapOf("message" to "success"))
+    }
+
+    @PostMapping("/reminder-guest")
+    fun eventReminderToGuest(@RequestBody body: Map<String, String>) : ResponseEntity<Any> {
+
+        val guest = userRepository.findFirstById(body["guestId"]!!.toLong()).orElseThrow()
+        val event = attendeeRepository.findFirstByEventIdAndUserTelegramId(body["eventId"]!!.toLong(), guest.telegramId!!).orElseThrow()
+        notificationService.sendEventReminder(event.userTelegramId!!, event)
+
+        return ResponseEntity.ok().body(mapOf("message" to "success"))
+    }
 
 }

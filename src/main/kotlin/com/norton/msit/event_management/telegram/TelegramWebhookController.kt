@@ -28,6 +28,8 @@ class TelegramWebhookController {
     @Autowired
     private lateinit var myTelegramBot: MyTelegramBot
     @Autowired
+    private lateinit var notificationService: NotificationService
+    @Autowired
     private lateinit var userRepository: UserRepository
     @Autowired
     private lateinit var eventGuestRepository: AttendeeRepository
@@ -44,52 +46,19 @@ class TelegramWebhookController {
         if (update.hasMessage() && update.message.text == "/start") {
 
             val registerUrl = "$publicUrl/api/v1/auth/register"
-
-            val chatId = update.message.chatId.toString()
-/*            val message = SendMessage(chatId,
-                """
-        👋 Welcome to Event Management System Bot!
-        
-        Here's what I can do for you:
-        ✅ sign up by web [event.mgt.singup.com](${registerUrl})
-        ✅ Use Your ID : $chatId for fill in Sign-Up form.
-        
-        ✅ sign up quickly by clicking the button below.
-            """.trimIndent()
-            )
-
-            val button = InlineKeyboardButton()
-            button.text = "Click here to sign up"
-            button.url = registerUrl
-
-            val keyboard = InlineKeyboardMarkup()
-            keyboard.keyboard = listOf(listOf(button))
-            message.replyMarkup = keyboard
-
-            message.parseMode = ParseMode.MARKDOWN*/
-
-            val message = "👋 Welcome to Event Management System Bot!\n\n" +
-                    "Here's what I can do for you:\n" +
-                    "✅ sign up by web [event.mgt.singup.com]($registerUrl)\n" +
-                    "✅ Use Your ID : $chatId for fill in Sign-Up form.\n" +
-                    "\n" +
-                    "✅ sign up quickly by clicking the button below.\n" +
-                    "\n" +
-                    "👉 Click here to sign up"
-
-            val msg = SendMessage(chatId, message)
-            msg.parseMode = ParseMode.MARKDOWN
-            myTelegramBot.execute(msg)
+            notificationService.sendStartInfo(update.message.chatId.toString(), registerUrl)
         }
 
         if (update.hasMessage() && update.message.text == "/id") {
+
             val chatId = update.message.chatId.toString()
             val message = SendMessage(chatId, "Your ID is : $chatId")
-            myTelegramBot.execute(message)
+            notificationService.send(message)
         }
 
 
         if (update.hasCallbackQuery()) {
+
             val callbackData = update.callbackQuery.data
             val chatId = update.callbackQuery.message.chatId.toString()
 
@@ -103,38 +72,49 @@ class TelegramWebhookController {
                         user.get().status = true
                         userRepository.save(user.get())
                         myTelegramBot.execute(SendMessage(chatId, "Your sign-up is confirmed. Welcome!"))
+                        return
                     }
-
                     else {
                         myTelegramBot.execute(SendMessage(chatId, "The User ID Not Match. Please Try Again."))
+                        return
                     }
                 }
 
                 if (callbackData.startsWith("confirm_event_register:")) {
 
-                    val eventId = callbackData.split(":")[1].toLong() ?: 0
+                    val eventId = callbackData.split(":")[1].toLong()
                     val user = userRepository.findFirstByTelegramId(chatId)
                     if (user.isEmpty) {
                         myTelegramBot.execute(SendMessage(chatId, "The User ID Not Match. Please Try Again."))
+                        return
                     }
 
                     val eventGuest = eventGuestRepository.findFirstByEventIdAndUserTelegramId(eventId, chatId)
                     if (eventGuest.isEmpty) {
                         myTelegramBot.execute(SendMessage(chatId, "The Event Not Match. Please Try Again."))
+                        return
+                    }
+
+                    val ticketNumber = eventGuest.get().ticketNumber
+                    if (ticketNumber == null) {
+                        eventGuest.get().ticketNumber = generateTicketNumber(eventId,chatId.toLong())
                     }
 
                     eventGuest.get().userConfirmed = true
                     eventGuestRepository.save(eventGuest.get())
-
-                    val message = SendMessage(chatId, """🎉 **Event Registration Completed** 🎉""")
-                    message.parseMode = ParseMode.MARKDOWN
-                    myTelegramBot.execute(message)
+                    notificationService.sendTicketNumber(chatId, eventGuest.get().eventName!!, eventGuest.get().ticketNumber!!)
+                    return
                 }
 
             } catch (e: TelegramApiException) {
                 e.printStackTrace()
             }
         }
+    }
+
+    fun generateTicketNumber(eventId: Long, userId: Long): String {
+        val randomComponent = (1000..9999).random() // Random 4-digit number
+        return "TICKET-${eventId}-$userId-${randomComponent}"
     }
 
 }

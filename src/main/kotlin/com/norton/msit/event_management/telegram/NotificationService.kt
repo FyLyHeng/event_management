@@ -1,5 +1,6 @@
 package com.norton.msit.event_management.telegram
 
+import com.norton.msit.event_management.attendee.EventAttendee
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
@@ -32,8 +33,24 @@ class NotificationService {
         restTemplate.postForObject(apiUrl, params, String::class.java)
     }
 
-    fun sendStartInfo(chatId: String) {
+    fun send(data : SendMessage) {
+        myTelegramBot.execute(data)
+    }
 
+    fun sendStartInfo(chatId: String, registerUrl: String) {
+
+        val message = "👋 Welcome to Event Management System Bot!\n\n" +
+                "Here's what I can do for you:\n" +
+                "✅ sign up by web [event.mgt.singup.com]($registerUrl)\n" +
+                "✅ Use Your ID : $chatId for fill in Sign-Up form.\n" +
+                "\n" +
+                "✅ sign up quickly by clicking the button below.\n" +
+                "\n" +
+                "👉 Click here to sign up"
+
+        val msg = SendMessage(chatId, message)
+        msg.parseMode = ParseMode.MARKDOWN
+        myTelegramBot.execute(msg)
     }
 
     fun sendSignupConfirmation(chatId: String) {
@@ -93,4 +110,52 @@ class NotificationService {
             e.printStackTrace()
         }
     }
+
+    fun sendTicketNumber(chatId: String, eventName: String, ticketNumber: String) {
+        val message = SendMessage()
+        message.chatId = chatId
+        message.text = """
+        🎟️ **Your Ticket for the Event** 🎟️
+
+        You've successfully registered for the event!
+        
+        🏷️ **Ticket Number:** $ticketNumber
+        
+        📅 **Event Name:** $eventName
+
+        Please keep this ticket number safe. We look forward to seeing you at the event!
+
+        If you have any questions, feel free to reach out. 😊
+    """.trimIndent()
+        message.parseMode = ParseMode.MARKDOWN
+
+        try {
+            myTelegramBot.execute(message)
+        } catch (e: TelegramApiException) {
+            e.printStackTrace()
+        }
+    }
+
+    fun sendEventReminder(chatId: String, event: EventAttendee) {
+        val message = SendMessage()
+        message.chatId = chatId
+        message.text = """
+        🎉 Reminder: Your event "${event.eventName}" is happening in just 1 days! 🎉
+
+        🗓 Date: ${event.eventDate}
+        🕒 Time: ${event.eventDate?.atStartOfDay()}
+        📍 Location: ${event.eventVenueName}
+
+        Don't forget to join us for this amazing experience!
+
+        See you there! 😊
+    """.trimIndent()
+
+        try {
+            myTelegramBot.execute(message)
+        } catch (e: TelegramApiException) {
+            e.printStackTrace()
+        }
+    }
+
 }
