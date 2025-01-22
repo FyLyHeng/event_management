@@ -123,6 +123,9 @@ class TelegramWebhookController {
                         myTelegramBot.execute(SendMessage(chatId, "The Event Not Match. Please Try Again."))
                     }
 
+                    eventGuest.get().userConfirmed = true
+                    eventGuestRepository.save(eventGuest.get())
+
                     val message = SendMessage(chatId, """🎉 **Event Registration Completed** 🎉""")
                     message.parseMode = ParseMode.MARKDOWN
                     myTelegramBot.execute(message)

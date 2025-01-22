@@ -25,7 +25,6 @@ class EventController {
     private lateinit var userRepository: UserRepository
     @Autowired
     private lateinit var attendeeRepository: AttendeeRepository
-
     @Autowired
     private lateinit var notificationService: NotificationService
 
