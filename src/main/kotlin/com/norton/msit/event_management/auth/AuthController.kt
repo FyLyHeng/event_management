@@ -2,11 +2,13 @@ package com.norton.msit.event_management.auth
 
 import com.norton.msit.event_management.telegram.NotificationService
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
+import kotlin.jvm.optionals.getOrElse
 
 @RestController
 @RequestMapping("/api/v1/auth")
@@ -19,35 +21,69 @@ class AuthController {
 
 
     @PostMapping("/login")
-    fun login(@RequestBody user: User): ResponseEntity<User> {
+    fun login(@RequestBody user: User): ResponseEntity<Any> {
 
-         val data = repository.findFirstByUsername(user.username).orElseThrow {
-             NotFoundException("Username not found")
+         val data = repository.findFirstByUsername(user.username).getOrElse {
+
+             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
+                 mapOf(
+                     "status" to false,
+                     "message" to "Account is not found"
+                 )
+             )
          }
 
-        if (data.password != user.password) {
-            throw BadRequestException("Password is incorrect")
+        if (data.status != true) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
+                mapOf(
+                    "status" to false,
+                    "message" to "Account is not active"
+                )
+            )
         }
 
+        if (data.password != user.password) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
+                mapOf(
+                    "status" to false,
+                    "message" to "Password is incorrect"
+                )
+            )
+        }
         return ResponseEntity.ok().body(data)
     }
 
 
     @PostMapping("/register")
-    fun singUp(@RequestBody user: User): ResponseEntity<User> {
+    fun singUp(@RequestBody user: User): ResponseEntity<Any> {
 
         if (user.telegramId == null){
-            throw BadRequestException("Telegram ID require")
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
+                mapOf(
+                    "status" to false,
+                    "message" to "telegramId require"
+                )
+            )
         }
 
-        var exist = repository.findFirstByTelegramId(user.telegramId)
+        if (repository.findFirstByTelegramId(user.telegramId).isPresent){
 
-        if (exist.isPresent){
-
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
+                mapOf(
+                    "status" to false,
+                    "message" to "UserTelegramId already exists"
+                )
+            )
         }
 
-        repository.findFirstByUsername(user.username).ifPresent {
-            throw BadRequestException("Username already exists")
+        if (repository.findFirstByUsername(user.username).isPresent){
+
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
+                mapOf(
+                    "status" to false,
+                    "message" to "Username already exists"
+                )
+            )
         }
 
         user.status = false
