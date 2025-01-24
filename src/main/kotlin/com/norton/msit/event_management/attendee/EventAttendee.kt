@@ -19,13 +19,16 @@ data class EventAttendee(
 
 
     var eventId: Long? = 0,
-    var userId: Long? = 0,
+    var eventOwnerId: Long? = 0,
+    var eventOwnerName: String? = null,
 
     var eventName: String? = null,
     var eventDate: LocalDate? = LocalDate.now(),
     val eventVenueName: String? = null,
 
     var ticketNumber: String? = null,
+
+    var userId: Long? = 0,
     var userFullName: String? = null,
     val userEmail: String? = null,
     val userPhone: String? = null,
