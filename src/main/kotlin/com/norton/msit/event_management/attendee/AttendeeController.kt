@@ -23,7 +23,7 @@ class AttendeeController {
     @Autowired
     private lateinit var repository: AttendeeRepository
 
-    @GetMapping("/list-by-event_id/{eventId}")
+    @GetMapping("/list-by-event-id/{eventId}")
     fun listByEvent(@PathVariable eventId:Long) : ResponseEntity<List<EventAttendee>> {
         val agendas = repository.findAll(Sort.by(Sort.Direction.DESC, "eventId"))
             .filter { it.eventId == eventId }

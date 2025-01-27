@@ -32,10 +32,18 @@ class EventController {
 
 
     @GetMapping("/list")
-    fun listEvent() : ResponseEntity<List<Event>> {
+    fun listEventForGuest() : ResponseEntity<List<Event>> {
         val events = repository.findAll(Sort.by(Sort.Direction.DESC, "id"))
         return ResponseEntity.ok().body(events)
     }
+
+    @GetMapping("/list-by-owner/{ownerId}")
+    fun listEventByOwnerId(@PathVariable ownerId: Long) : ResponseEntity<List<Event>> {
+        val events = repository.findAll(Sort.by(Sort.Direction.DESC, "id"))
+            .filter { it.createdBy == ownerId }
+        return ResponseEntity.ok().body(events)
+    }
+
 
     @GetMapping("{id}")
     fun getById(@PathVariable id: Long): ResponseEntity<Event> {
@@ -52,7 +60,7 @@ class EventController {
 
 
     @PostMapping("/register")
-    fun preRegisterToEvent(@RequestBody body: Map<String, String>) : ResponseEntity<Any> {
+    fun guestRegisterToEvent(@RequestBody body: Map<String, String>) : ResponseEntity<Any> {
 
         val event = repository.findFirstById(body["eventId"]!!.toLong()).orElseThrow()
         val guest = userRepository.findFirstById(body["guestId"]!!.toLong()).orElseThrow()
@@ -84,7 +92,7 @@ class EventController {
 
 
     @PostMapping("/reminder-all")
-    fun eventReminderAll(@RequestBody body: Map<String, String>) : ResponseEntity<Any> {
+    fun eventOwnerPushReminderAll(@RequestBody body: Map<String, String>) : ResponseEntity<Any> {
 
         val event = attendeeRepository.findAllByEventId(body["eventId"]!!.toLong())
 
@@ -96,7 +104,7 @@ class EventController {
     }
 
     @PostMapping("/reminder-guest")
-    fun eventReminderToGuest(@RequestBody body: Map<String, String>) : ResponseEntity<Any> {
+    fun eventOwnerReminderToGuest(@RequestBody body: Map<String, String>) : ResponseEntity<Any> {
 
         val guest = userRepository.findFirstById(body["guestId"]!!.toLong()).orElseThrow()
         val event = attendeeRepository.findFirstByEventIdAndUserTelegramId(body["eventId"]!!.toLong(), guest.telegramId!!).orElseThrow()
