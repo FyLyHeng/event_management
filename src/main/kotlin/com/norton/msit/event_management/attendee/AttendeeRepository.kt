@@ -10,6 +10,8 @@ interface AttendeeRepository : JpaRepository<EventAttendee, Long> {
 
     override fun findAll() : MutableList<EventAttendee>
 
+    fun findAllByUserId(userId:Long) : MutableList<EventAttendee>
+
     fun findFirstByEventIdAndUserId(eventId:Long?, userId:Long) : Optional<EventAttendee>
 
     fun findAllByEventId(eventId:Long) : MutableList<EventAttendee>

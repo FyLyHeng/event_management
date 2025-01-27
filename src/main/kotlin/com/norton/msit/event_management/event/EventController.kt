@@ -92,6 +92,13 @@ class EventController {
         return ResponseEntity.ok().body(mapOf("message" to "success"))
     }
 
+
+    @GetMapping("/list-my-joined-event/{userId}")
+    fun listMyJoinedEvent(@PathVariable userId : Long) : ResponseEntity<Any> {
+        val events = attendeeRepository.findAllByUserId(userId)
+        return ResponseEntity.ok().body(events)
+    }
+
     @PostMapping("/confirm-joined")
     fun confirmGuestJoined(@RequestBody body : Map<String,String>) : ResponseEntity<Any> {
 
