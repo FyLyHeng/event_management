@@ -1,7 +1,9 @@
 package com.norton.msit.event_management.event
 
+import com.norton.msit.event_management.attendee.AttendanceStatus
 import com.norton.msit.event_management.attendee.EventAttendee
 import com.norton.msit.event_management.attendee.AttendeeRepository
+import com.norton.msit.event_management.auth.NotFoundException
 import com.norton.msit.event_management.auth.UserRepository
 import com.norton.msit.event_management.telegram.NotificationService
 import org.slf4j.Logger
@@ -90,6 +92,23 @@ class EventController {
         return ResponseEntity.ok().body(mapOf("message" to "success"))
     }
 
+    @PostMapping("/confirm-joined")
+    fun confirmGuestJoined(@RequestBody body : Map<String,String>) : ResponseEntity<Any> {
+
+        val event = repository.findFirstById(body["eventId"]!!.toLong()).orElseThrow()
+        val guest = userRepository.findFirstById(body["guestId"]!!.toLong()).orElseThrow()
+
+
+        val data = attendeeRepository.findFirstByEventIdAndUserId(event.id!!, guest.id!!).orElseThrow {
+            throw NotFoundException("Attendee Not Found")
+        }
+
+        data.attendanceStatus = AttendanceStatus.Joined.toString()
+        attendeeRepository.save(data)
+
+        return ResponseEntity.ok().body(mapOf("message" to "success"))
+
+    }
 
     @PostMapping("/reminder-all")
     fun eventOwnerPushReminderAll(@RequestBody body: Map<String, String>) : ResponseEntity<Any> {
