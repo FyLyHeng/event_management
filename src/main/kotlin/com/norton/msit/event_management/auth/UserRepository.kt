@@ -7,6 +7,7 @@ import java.util.*
 @Repository
 interface UserRepository : JpaRepository<User, Long> {
 
+
     override fun findAll() : MutableList<User>
 
     fun findFirstByTelegramId(terminalId: String?) : Optional<User>
