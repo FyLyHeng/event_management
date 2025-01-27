@@ -40,13 +40,9 @@ class NotificationService {
     fun sendStartInfo(chatId: String, registerUrl: String) {
 
         val message = "👋 Welcome to Event Management System Bot!\n\n" +
-                "Here's what I can do for you:\n" +
-                "✅ sign up by web [event.mgt.singup.com]($registerUrl)\n" +
-                "✅ Use Your ID : $chatId for fill in Sign-Up form.\n" +
+                "✅ Use Your ID : $chatId\n" +
                 "\n" +
-                "✅ sign up quickly by clicking the button below.\n" +
-                "\n" +
-                "👉 Click here to sign up"
+                "👉 Use Your ID for fill in Sign Up Form.\n"
 
         val msg = SendMessage(chatId, message)
         msg.parseMode = ParseMode.MARKDOWN
