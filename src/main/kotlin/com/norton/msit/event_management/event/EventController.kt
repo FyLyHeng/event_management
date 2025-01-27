@@ -103,6 +103,7 @@ class EventController {
             throw NotFoundException("Attendee Not Found")
         }
 
+        data.userConfirmed = true
         data.attendanceStatus = AttendanceStatus.Joined.toString()
         attendeeRepository.save(data)
 
